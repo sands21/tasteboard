@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+/* "Gallery" design system — the complete palette. Do not add colors.
+   Fonts come from next/font/google as CSS variables on <html>:
+   --font-geist (UI) and --font-instrument-serif (notes/wordmark/empty states only). */
+@theme {
+  --color-paper: #faf9f5;
+  --color-surface: #ffffff;
+  --color-ink: #1c1b18;
+  --color-muted: #6f6a60;
+  --color-hairline: #e9e5dc;
+  --color-rose-surface: #f6cfd6;
+  --color-rose-ink: #be4b66;
+
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-instrument-serif), ui-serif, Georgia, serif;
+
+  --radius-card: 10px;
+  --radius-control: 8px;
+}
+
+html,
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
