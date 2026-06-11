@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable } from "dexie";
+import { nanoid } from "nanoid";
 
 /**
  * One saved piece of visual inspiration. The `note` ("why I saved this") is the
@@ -17,10 +18,13 @@ export interface Inspiration {
   height: number; //   (zero layout shift)
 }
 
+export type NewInspiration = Omit<Inspiration, "id" | "createdAt">;
+
 /**
  * The single storage seam. All Dexie access lives in this file — components
- * never import Dexie directly. This keeps any future migration (e.g. Neon +
- * Vercel Blob) a change to this one module.
+ * call the exported helpers and never touch Dexie (or `db`) directly. This
+ * keeps any future migration (e.g. Neon + Vercel Blob) a change to this one
+ * module.
  */
 const db = new Dexie("tasteboard") as Dexie & {
   inspirations: EntityTable<Inspiration, "id">;
@@ -32,4 +36,18 @@ db.version(1).stores({
   inspirations: "id, createdAt",
 });
 
-export { db };
+export async function saveInspiration(
+  input: NewInspiration,
+): Promise<Inspiration> {
+  const inspiration: Inspiration = {
+    id: nanoid(),
+    createdAt: Date.now(),
+    ...input,
+  };
+  await db.inspirations.add(inspiration);
+  return inspiration;
+}
+
+export async function getAll(): Promise<Inspiration[]> {
+  return db.inspirations.orderBy("createdAt").reverse().toArray();
+}
