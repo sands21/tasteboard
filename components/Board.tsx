@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { getAll } from "@/lib/db";
 import { CaptureSheet } from "@/components/CaptureSheet";
+import { MasonryGrid } from "@/components/MasonryGrid";
 
 function isEditable(target: EventTarget | null): boolean {
   return (
@@ -113,18 +114,20 @@ export function Board() {
         </button>
       </header>
 
-      {/* Placeholder content area — replaced by the masonry grid in step 3. */}
-      <section className="flex min-h-[70vh] items-center justify-center px-6 text-center">
-        {inspirations && inspirations.length > 0 ? (
-          <p className="text-[13px] text-muted">
-            {inspirations.length} saved — the grid arrives in step 3
-          </p>
+      {inspirations !== undefined &&
+        (inspirations.length > 0 ? (
+          <section className="px-8 pb-16 pt-2">
+            <MasonryGrid items={inspirations} />
+          </section>
         ) : (
-          <p className="max-w-md font-serif text-[28px] italic text-muted">
-            paste something you love — ⌘V anywhere
-          </p>
-        )}
-      </section>
+          // The empty state is the onboarding — there is no other onboarding.
+          // ("load a sample board" joins it with the demo seed in step 8.)
+          <section className="flex min-h-[70vh] items-center justify-center px-6 text-center">
+            <p className="max-w-xl font-serif text-[28px] italic text-muted">
+              paste something you love — ⌘V anywhere
+            </p>
+          </section>
+        ))}
 
       {dragging && (
         <div className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center bg-rose-surface/20 ring-2 ring-inset ring-rose-ink/30">
