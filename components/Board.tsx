@@ -12,6 +12,7 @@ import {
   updateNote,
 } from "@/lib/db";
 import { isEditableTarget } from "@/lib/dom";
+import { exportBoard, importBoard } from "@/lib/backup";
 import { CaptureSheet } from "@/components/CaptureSheet";
 import { MasonryGrid } from "@/components/MasonryGrid";
 import { Lightbox } from "@/components/Lightbox";
@@ -69,11 +70,62 @@ export function Board() {
 
   const [undoRecord, setUndoRecord] = useState<Inspiration | null>(null);
   const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Export/import: one at a time, with a brief outcome notice.
+  const [porting, setPorting] = useState<"export" | "import" | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     return () => {
       if (undoTimer.current) clearTimeout(undoTimer.current);
+      if (noticeTimer.current) clearTimeout(noticeTimer.current);
     };
   }, []);
+
+  const showNotice = useCallback((text: string) => {
+    setNotice(text);
+    if (noticeTimer.current) clearTimeout(noticeTimer.current);
+    noticeTimer.current = setTimeout(() => setNotice(null), 4000);
+  }, []);
+
+  async function handleExport() {
+    if (porting) return;
+    setPorting("export");
+    try {
+      const { blob, filename } = await exportBoard();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    } catch {
+      showNotice("couldn't export");
+    } finally {
+      setPorting(null);
+    }
+  }
+
+  async function handleImportFile(file: File) {
+    if (porting) return;
+    setPorting("import");
+    try {
+      const n = await importBoard(file);
+      showNotice(
+        n > 0
+          ? `imported ${n} inspiration${n === 1 ? "" : "s"}`
+          : "nothing to import",
+      );
+    } catch {
+      showNotice("couldn't import — is that a tasteboard export?");
+    } finally {
+      setPorting(null);
+    }
+  }
 
   const closeSheet = useCallback(() => {
     setSheetOpen(false);
@@ -220,13 +272,44 @@ export function Board() {
             />
           )}
         </div>
-        <button
-          type="button"
-          onClick={() => setSheetOpen(true)}
-          className="rounded-control bg-rose-surface px-3.5 py-1.5 text-sm text-ink transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink"
-        >
-          add
-        </button>
+        <div className="flex items-center gap-4">
+          {inspirations !== undefined && inspirations.length > 0 && (
+            <button
+              type="button"
+              onClick={() => void handleExport()}
+              disabled={porting !== null}
+              className="text-[13px] text-muted transition-colors hover:text-ink focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink disabled:opacity-50"
+            >
+              {porting === "export" ? "exporting…" : "export"}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => importInputRef.current?.click()}
+            disabled={porting !== null}
+            className="text-[13px] text-muted transition-colors hover:text-ink focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink disabled:opacity-50"
+          >
+            {porting === "import" ? "importing…" : "import"}
+          </button>
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".zip,application/zip"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void handleImportFile(file);
+              e.target.value = "";
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => setSheetOpen(true)}
+            className="rounded-control bg-rose-surface px-3.5 py-1.5 text-sm text-ink transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink"
+          >
+            add
+          </button>
+        </div>
       </header>
 
       {inspirations !== undefined &&
@@ -274,22 +357,36 @@ export function Board() {
         />
       )}
 
-      {undoRecord && (
-        <motion.div
-          initial={{ opacity: 0, y: 8, x: "-50%" }}
-          animate={{ opacity: 1, y: 0, x: "-50%" }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
-          className="fixed bottom-6 left-1/2 z-50 flex items-center gap-3 rounded-control border border-hairline bg-surface px-4 py-2 shadow-[0_8px_32px_rgba(28,27,24,0.12)]"
-        >
-          <span className="text-[13px] text-muted">deleted</span>
-          <button
-            type="button"
-            onClick={handleUndo}
-            className="text-[13px] text-rose-ink hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink"
-          >
-            undo
-          </button>
-        </motion.div>
+      {(undoRecord || notice) && (
+        <div className="pointer-events-none fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 flex-col items-center gap-2">
+          {undoRecord && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="pointer-events-auto flex items-center gap-3 rounded-control border border-hairline bg-surface px-4 py-2 shadow-[0_8px_32px_rgba(28,27,24,0.12)]"
+            >
+              <span className="text-[13px] text-muted">deleted</span>
+              <button
+                type="button"
+                onClick={handleUndo}
+                className="text-[13px] text-rose-ink hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink"
+              >
+                undo
+              </button>
+            </motion.div>
+          )}
+          {notice && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="pointer-events-auto rounded-control border border-hairline bg-surface px-4 py-2 text-[13px] text-muted shadow-[0_8px_32px_rgba(28,27,24,0.12)]"
+            >
+              {notice}
+            </motion.div>
+          )}
+        </div>
       )}
     </main>
   );
