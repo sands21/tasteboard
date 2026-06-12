@@ -14,24 +14,53 @@ let promptCursor = 0;
 
 interface CaptureSheetProps {
   image: Blob | null;
+  initialUrl?: string | null;
   onImageChange: (image: Blob) => void;
   onClose: () => void;
 }
 
+// Same-origin proxy for a remote og:image — its CDN almost never sends CORS
+// headers, so the blob has to come through our own route.
+function ogImageProxySrc(ogImage: string): string {
+  return `/api/metadata?url=${encodeURIComponent(ogImage)}&kind=image`;
+}
+
 export function CaptureSheet({
   image,
+  initialUrl,
   onImageChange,
   onClose,
 }: CaptureSheetProps) {
   const [note, setNote] = useState("");
-  const [url, setUrl] = useState("");
+  const [url, setUrl] = useState(initialUrl ?? "");
   const [title, setTitle] = useState("");
+  const [ogImage, setOgImage] = useState<string | null>(null);
+  const [metaLoading, setMetaLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [prompt] = useState(
     () => NOTE_PROMPTS[promptCursor++ % NOTE_PROMPTS.length],
   );
+
+  // URL-paste flow: fetch metadata in the background. Failure is silent —
+  // it only ever adds a preview and a title, never blocks anything.
+  useEffect(() => {
+    if (!initialUrl) return;
+    const controller = new AbortController();
+    setMetaLoading(true);
+    fetch(`/api/metadata?url=${encodeURIComponent(initialUrl)}`, {
+      signal: controller.signal,
+    })
+      .then((res) => res.json())
+      .then((meta: { title: string | null; ogImage: string | null }) => {
+        if (meta.title) setTitle((prev) => prev || meta.title!);
+        if (meta.ogImage) setOgImage(meta.ogImage);
+      })
+      .catch(() => {})
+      .finally(() => setMetaLoading(false));
+    return () => controller.abort();
+  }, [initialUrl]);
 
   const previewUrl = useMemo(
     () => (image ? URL.createObjectURL(image) : null),
@@ -43,19 +72,33 @@ export function CaptureSheet({
     };
   }, [previewUrl]);
 
-  const canSave = image !== null && note.trim() !== "" && !saving;
+  // A pasted/dropped screenshot always wins over the fetched og:image.
+  const previewSrc = previewUrl ?? (ogImage ? ogImageProxySrc(ogImage) : null);
+
+  const canSave =
+    (image !== null || ogImage !== null) && note.trim() !== "" && !saving;
 
   async function handleSave() {
-    if (!image || note.trim() === "" || saving) return;
+    if (note.trim() === "" || saving) return;
     setSaving(true);
     setError(null);
     try {
-      const { thumb, width, height } = await makeThumb(image);
+      let source = image;
+      if (!source && ogImage) {
+        const res = await fetch(ogImageProxySrc(ogImage));
+        if (!res.ok) throw new Error("og image fetch failed");
+        source = await res.blob();
+      }
+      if (!source) {
+        setSaving(false);
+        return;
+      }
+      const { thumb, width, height } = await makeThumb(source);
       await saveInspiration({
         note: note.trim(),
         url: url.trim() || undefined,
         title: title.trim() || undefined,
-        image,
+        image: source,
         thumb,
         width,
         height,
@@ -96,10 +139,10 @@ export function CaptureSheet({
         aria-label="capture inspiration"
         className="w-full max-w-lg rounded-card bg-surface p-5 shadow-[0_24px_64px_rgba(28,27,24,0.18)]"
       >
-        {previewUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- blob URL preview; next/image can't optimize these
+        {previewSrc ? (
+          // eslint-disable-next-line @next/next/no-img-element -- blob/proxy URL preview; next/image can't optimize these
           <img
-            src={previewUrl}
+            src={previewSrc}
             alt=""
             className="max-h-72 w-full rounded-card border border-hairline bg-paper object-contain"
           />
@@ -109,7 +152,7 @@ export function CaptureSheet({
             onClick={() => fileInputRef.current?.click()}
             className="flex h-40 w-full items-center justify-center rounded-card border border-dashed border-hairline text-sm text-muted focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink"
           >
-            paste a screenshot — ⌘V
+            {metaLoading ? "fetching preview…" : "paste a screenshot — ⌘V"}
           </button>
         )}
         <input

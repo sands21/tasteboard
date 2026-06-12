@@ -27,9 +27,20 @@ function imageFromDataTransfer(dt: DataTransfer | null): File | null {
   );
 }
 
+function urlFromText(text: string): string | null {
+  const trimmed = text.trim();
+  if (!/^https?:\/\//i.test(trimmed) || /\s/.test(trimmed)) return null;
+  try {
+    return new URL(trimmed).toString();
+  } catch {
+    return null;
+  }
+}
+
 export function Board() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [pendingImage, setPendingImage] = useState<Blob | null>(null);
+  const [pendingUrl, setPendingUrl] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const dragDepth = useRef(0);
   const inspirations = useLiveQuery(getAll);
@@ -37,22 +48,33 @@ export function Board() {
   const closeSheet = useCallback(() => {
     setSheetOpen(false);
     setPendingImage(null);
+    setPendingUrl(null);
   }, []);
 
   // Paste anywhere: a clipboard image opens the sheet pre-filled, or replaces
-  // the preview if the sheet is already open. Text paste is left alone
-  // (URL-paste + metadata flow arrives with /api/metadata in step 4).
+  // the preview if the sheet is already open. URL text opens the sheet with
+  // the url field pre-filled (metadata fetched in the background) — but never
+  // when typing in a field or while the sheet is already up, so pasting a url
+  // into the sheet's own input stays a normal paste.
   useEffect(() => {
     function onPaste(e: ClipboardEvent) {
       const file = imageFromDataTransfer(e.clipboardData);
-      if (!file) return;
+      if (file) {
+        e.preventDefault();
+        setPendingImage(file);
+        setSheetOpen(true);
+        return;
+      }
+      if (sheetOpen || isEditable(e.target)) return;
+      const url = urlFromText(e.clipboardData?.getData("text/plain") ?? "");
+      if (!url) return;
       e.preventDefault();
-      setPendingImage(file);
+      setPendingUrl(url);
       setSheetOpen(true);
     }
     window.addEventListener("paste", onPaste);
     return () => window.removeEventListener("paste", onPaste);
-  }, []);
+  }, [sheetOpen]);
 
   // N opens an empty capture sheet — unless typing or the sheet is open.
   useEffect(() => {
@@ -140,6 +162,7 @@ export function Board() {
       {sheetOpen && (
         <CaptureSheet
           image={pendingImage}
+          initialUrl={pendingUrl}
           onImageChange={setPendingImage}
           onClose={closeSheet}
         />
