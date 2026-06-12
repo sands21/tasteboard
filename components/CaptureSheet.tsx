@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { saveInspiration } from "@/lib/db";
 import { makeThumb } from "@/lib/images";
 
@@ -62,15 +62,18 @@ export function CaptureSheet({
     return () => controller.abort();
   }, [initialUrl]);
 
-  const previewUrl = useMemo(
-    () => (image ? URL.createObjectURL(image) : null),
-    [image],
-  );
+  // Created inside the effect (not useMemo): StrictMode replays mount/cleanup,
+  // and a memoized URL would be revoked while still displayed.
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-    };
-  }, [previewUrl]);
+    if (!image) {
+      setPreviewUrl(null);
+      return;
+    }
+    const u = URL.createObjectURL(image);
+    setPreviewUrl(u);
+    return () => URL.revokeObjectURL(u);
+  }, [image]);
 
   // A pasted/dropped screenshot always wins over the fetched og:image.
   const previewSrc = previewUrl ?? (ogImage ? ogImageProxySrc(ogImage) : null);

@@ -25,9 +25,10 @@ function useColumnCount(): number {
 
 interface MasonryGridProps {
   items: Inspiration[]; // newest first — data arrives as props, never from Dexie
+  onItemOpen: (item: Inspiration, origin: { x: number; y: number }) => void;
 }
 
-export function MasonryGrid({ items }: MasonryGridProps) {
+export function MasonryGrid({ items, onItemOpen }: MasonryGridProps) {
   const columnCount = useColumnCount();
 
   // Ids present on first render skip the settle animation — only items saved
@@ -69,7 +70,7 @@ export function MasonryGrid({ items }: MasonryGridProps) {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
             >
-              <InspirationCard item={item} />
+              <InspirationCard item={item} onOpen={onItemOpen} />
             </motion.div>
           ))}
         </div>

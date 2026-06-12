@@ -6,6 +6,7 @@ import type { Inspiration } from "@/lib/db";
 
 interface InspirationCardProps {
   item: Inspiration;
+  onOpen: (item: Inspiration, origin: { x: number; y: number }) => void;
 }
 
 /**
@@ -14,7 +15,7 @@ interface InspirationCardProps {
  * The thumb blob is only turned into an object URL once the card nears the
  * viewport (IntersectionObserver via useInView).
  */
-export function InspirationCard({ item }: InspirationCardProps) {
+export function InspirationCard({ item, onOpen }: InspirationCardProps) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "200px 0px" });
   const [src, setSrc] = useState<string | null>(null);
@@ -26,10 +27,31 @@ export function InspirationCard({ item }: InspirationCardProps) {
     return () => URL.revokeObjectURL(url);
   }, [inView, item.thumb]);
 
+  // The lightbox scales in from the card's position, so opening passes the
+  // card's current viewport center along.
+  function open() {
+    const rect = ref.current?.getBoundingClientRect();
+    onOpen(
+      item,
+      rect
+        ? { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }
+        : { x: window.innerWidth / 2, y: window.innerHeight / 2 },
+    );
+  }
+
   return (
     <div
       ref={ref}
-      className="group relative overflow-hidden rounded-card bg-hairline/40"
+      role="button"
+      tabIndex={0}
+      onClick={open}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          open();
+        }
+      }}
+      className="group relative cursor-pointer overflow-hidden rounded-card bg-hairline/40 focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink"
       style={{ aspectRatio: `${item.width} / ${item.height}` }}
     >
       {src && (

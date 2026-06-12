@@ -51,3 +51,21 @@ export async function saveInspiration(
 export async function getAll(): Promise<Inspiration[]> {
   return db.inspirations.orderBy("createdAt").reverse().toArray();
 }
+
+export async function updateNote(id: string, note: string): Promise<void> {
+  await db.inspirations.update(id, { note });
+}
+
+/** Deletes and returns the record so the caller can offer undo. */
+export async function deleteInspiration(
+  id: string,
+): Promise<Inspiration | undefined> {
+  const record = await db.inspirations.get(id);
+  await db.inspirations.delete(id);
+  return record;
+}
+
+/** Puts a deleted record back exactly as it was (same id and createdAt). */
+export async function restoreInspiration(record: Inspiration): Promise<void> {
+  await db.inspirations.put(record);
+}

@@ -1,19 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { useLiveQuery } from "dexie-react-hooks";
-import { getAll } from "@/lib/db";
+import {
+  type Inspiration,
+  deleteInspiration,
+  getAll,
+  restoreInspiration,
+  updateNote,
+} from "@/lib/db";
+import { isEditableTarget } from "@/lib/dom";
 import { CaptureSheet } from "@/components/CaptureSheet";
 import { MasonryGrid } from "@/components/MasonryGrid";
-
-function isEditable(target: EventTarget | null): boolean {
-  return (
-    target instanceof HTMLElement &&
-    (target.tagName === "INPUT" ||
-      target.tagName === "TEXTAREA" ||
-      target.isContentEditable)
-  );
-}
+import { Lightbox } from "@/components/Lightbox";
 
 function imageFromDataTransfer(dt: DataTransfer | null): File | null {
   if (!dt) return null;
@@ -37,6 +37,8 @@ function urlFromText(text: string): string | null {
   }
 }
 
+const UNDO_TOAST_MS = 6000;
+
 export function Board() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [pendingImage, setPendingImage] = useState<Blob | null>(null);
@@ -44,6 +46,25 @@ export function Board() {
   const [dragging, setDragging] = useState(false);
   const dragDepth = useRef(0);
   const inspirations = useLiveQuery(getAll);
+
+  // Lightbox tracks the open item by id (indexes shift as items come and go).
+  const [lightbox, setLightbox] = useState<{
+    id: string;
+    origin: { x: number; y: number };
+  } | null>(null);
+  const lightboxIndex =
+    lightbox && inspirations
+      ? inspirations.findIndex((i) => i.id === lightbox.id)
+      : -1;
+  const lightboxItem = lightboxIndex >= 0 ? inspirations![lightboxIndex] : null;
+
+  const [undoRecord, setUndoRecord] = useState<Inspiration | null>(null);
+  const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (undoTimer.current) clearTimeout(undoTimer.current);
+    };
+  }, []);
 
   const closeSheet = useCallback(() => {
     setSheetOpen(false);
@@ -55,9 +76,11 @@ export function Board() {
   // the preview if the sheet is already open. URL text opens the sheet with
   // the url field pre-filled (metadata fetched in the background) — but never
   // when typing in a field or while the sheet is already up, so pasting a url
-  // into the sheet's own input stays a normal paste.
+  // into the sheet's own input stays a normal paste. The lightbox is a
+  // focused mode — paste is ignored there.
   useEffect(() => {
     function onPaste(e: ClipboardEvent) {
+      if (lightbox) return;
       const file = imageFromDataTransfer(e.clipboardData);
       if (file) {
         e.preventDefault();
@@ -65,7 +88,7 @@ export function Board() {
         setSheetOpen(true);
         return;
       }
-      if (sheetOpen || isEditable(e.target)) return;
+      if (sheetOpen || isEditableTarget(e.target)) return;
       const url = urlFromText(e.clipboardData?.getData("text/plain") ?? "");
       if (!url) return;
       e.preventDefault();
@@ -74,31 +97,31 @@ export function Board() {
     }
     window.addEventListener("paste", onPaste);
     return () => window.removeEventListener("paste", onPaste);
-  }, [sheetOpen]);
+  }, [sheetOpen, lightbox]);
 
-  // N opens an empty capture sheet — unless typing or the sheet is open.
+  // N opens an empty capture sheet — unless typing or another overlay is up.
   useEffect(() => {
-    if (sheetOpen) return;
+    if (sheetOpen || lightbox) return;
     function onKeyDown(e: KeyboardEvent) {
       if (e.key.toLowerCase() !== "n" || e.metaKey || e.ctrlKey || e.altKey)
         return;
-      if (isEditable(e.target)) return;
+      if (isEditableTarget(e.target)) return;
       e.preventDefault();
       setSheetOpen(true);
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [sheetOpen]);
+  }, [sheetOpen, lightbox]);
 
   function onDragEnter(e: React.DragEvent) {
-    if (!e.dataTransfer.types.includes("Files")) return;
+    if (lightbox || !e.dataTransfer.types.includes("Files")) return;
     e.preventDefault();
     dragDepth.current += 1;
     setDragging(true);
   }
 
   function onDragOver(e: React.DragEvent) {
-    if (!e.dataTransfer.types.includes("Files")) return;
+    if (lightbox || !e.dataTransfer.types.includes("Files")) return;
     e.preventDefault();
   }
 
@@ -108,6 +131,7 @@ export function Board() {
   }
 
   function onDrop(e: React.DragEvent) {
+    if (lightbox) return;
     e.preventDefault();
     dragDepth.current = 0;
     setDragging(false);
@@ -116,6 +140,43 @@ export function Board() {
     setPendingImage(file);
     setSheetOpen(true);
   }
+
+  const openLightbox = useCallback(
+    (item: Inspiration, origin: { x: number; y: number }) => {
+      setLightbox({ id: item.id, origin });
+    },
+    [],
+  );
+
+  const navigateLightbox = useCallback(
+    (dir: 1 | -1) => {
+      if (!inspirations || lightboxIndex < 0) return;
+      const next = inspirations[lightboxIndex + dir];
+      if (next) setLightbox((prev) => prev && { ...prev, id: next.id });
+    },
+    [inspirations, lightboxIndex],
+  );
+
+  const handleUpdateNote = useCallback((id: string, note: string) => {
+    void updateNote(id, note);
+  }, []);
+
+  // No confirm dialog — delete immediately, offer undo in a brief toast.
+  const handleDelete = useCallback(async (id: string) => {
+    const record = await deleteInspiration(id);
+    setLightbox(null);
+    if (!record) return;
+    setUndoRecord(record);
+    if (undoTimer.current) clearTimeout(undoTimer.current);
+    undoTimer.current = setTimeout(() => setUndoRecord(null), UNDO_TOAST_MS);
+  }, []);
+
+  const handleUndo = useCallback(() => {
+    if (!undoRecord) return;
+    void restoreInspiration(undoRecord);
+    setUndoRecord(null);
+    if (undoTimer.current) clearTimeout(undoTimer.current);
+  }, [undoRecord]);
 
   return (
     <main
@@ -139,7 +200,7 @@ export function Board() {
       {inspirations !== undefined &&
         (inspirations.length > 0 ? (
           <section className="px-8 pb-16 pt-2">
-            <MasonryGrid items={inspirations} />
+            <MasonryGrid items={inspirations} onItemOpen={openLightbox} />
           </section>
         ) : (
           // The empty state is the onboarding — there is no other onboarding.
@@ -166,6 +227,37 @@ export function Board() {
           onImageChange={setPendingImage}
           onClose={closeSheet}
         />
+      )}
+
+      {lightboxItem && lightbox && (
+        <Lightbox
+          item={lightboxItem}
+          hasPrev={lightboxIndex > 0}
+          hasNext={lightboxIndex < inspirations!.length - 1}
+          origin={lightbox.origin}
+          onNavigate={navigateLightbox}
+          onClose={() => setLightbox(null)}
+          onUpdateNote={handleUpdateNote}
+          onDelete={(id) => void handleDelete(id)}
+        />
+      )}
+
+      {undoRecord && (
+        <motion.div
+          initial={{ opacity: 0, y: 8, x: "-50%" }}
+          animate={{ opacity: 1, y: 0, x: "-50%" }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className="fixed bottom-6 left-1/2 z-50 flex items-center gap-3 rounded-control border border-hairline bg-surface px-4 py-2 shadow-[0_8px_32px_rgba(28,27,24,0.12)]"
+        >
+          <span className="text-[13px] text-muted">deleted</span>
+          <button
+            type="button"
+            onClick={handleUndo}
+            className="text-[13px] text-rose-ink hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink"
+          >
+            undo
+          </button>
+        </motion.div>
       )}
     </main>
   );
