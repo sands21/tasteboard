@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
@@ -8,6 +8,7 @@ import {
   deleteInspiration,
   getAll,
   restoreInspiration,
+  searchInspirations,
   updateNote,
 } from "@/lib/db";
 import { isEditableTarget } from "@/lib/dom";
@@ -47,16 +48,24 @@ export function Board() {
   const dragDepth = useRef(0);
   const inspirations = useLiveQuery(getAll);
 
+  // Search filters the grid live — the grid just thins. The lightbox
+  // navigates the filtered list too, so ←/→ matches what's on screen.
+  const [query, setQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
+  const visible = useMemo(
+    () => searchInspirations(inspirations ?? [], query),
+    [inspirations, query],
+  );
+
   // Lightbox tracks the open item by id (indexes shift as items come and go).
   const [lightbox, setLightbox] = useState<{
     id: string;
     origin: { x: number; y: number };
   } | null>(null);
-  const lightboxIndex =
-    lightbox && inspirations
-      ? inspirations.findIndex((i) => i.id === lightbox.id)
-      : -1;
-  const lightboxItem = lightboxIndex >= 0 ? inspirations![lightboxIndex] : null;
+  const lightboxIndex = lightbox
+    ? visible.findIndex((i) => i.id === lightbox.id)
+    : -1;
+  const lightboxItem = lightboxIndex >= 0 ? visible[lightboxIndex] : null;
 
   const [undoRecord, setUndoRecord] = useState<Inspiration | null>(null);
   const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -99,15 +108,20 @@ export function Board() {
     return () => window.removeEventListener("paste", onPaste);
   }, [sheetOpen, lightbox]);
 
-  // N opens an empty capture sheet — unless typing or another overlay is up.
+  // N opens an empty capture sheet, / focuses search — unless typing or
+  // another overlay is up.
   useEffect(() => {
     if (sheetOpen || lightbox) return;
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key.toLowerCase() !== "n" || e.metaKey || e.ctrlKey || e.altKey)
-        return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (isEditableTarget(e.target)) return;
-      e.preventDefault();
-      setSheetOpen(true);
+      if (e.key.toLowerCase() === "n") {
+        e.preventDefault();
+        setSheetOpen(true);
+      } else if (e.key === "/") {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
@@ -150,11 +164,11 @@ export function Board() {
 
   const navigateLightbox = useCallback(
     (dir: 1 | -1) => {
-      if (!inspirations || lightboxIndex < 0) return;
-      const next = inspirations[lightboxIndex + dir];
+      if (lightboxIndex < 0) return;
+      const next = visible[lightboxIndex + dir];
       if (next) setLightbox((prev) => prev && { ...prev, id: next.id });
     },
-    [inspirations, lightboxIndex],
+    [visible, lightboxIndex],
   );
 
   const handleUpdateNote = useCallback((id: string, note: string) => {
@@ -186,8 +200,26 @@ export function Board() {
       onDragLeave={onDragLeave}
       onDrop={onDrop}
     >
-      <header className="flex items-center justify-between px-8 py-5">
+      <header className="flex items-center gap-6 px-8 py-5">
         <h1 className="font-serif text-xl italic">tasteboard</h1>
+        <div className="flex flex-1 justify-center">
+          {inspirations !== undefined && inspirations.length > 0 && (
+            <input
+              ref={searchRef}
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="search your taste"
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  if (query) setQuery("");
+                  else e.currentTarget.blur();
+                }
+              }}
+              className="w-full max-w-xs rounded-control border border-hairline bg-surface px-3 py-1.5 text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-rose-ink"
+            />
+          )}
+        </div>
         <button
           type="button"
           onClick={() => setSheetOpen(true)}
@@ -200,7 +232,7 @@ export function Board() {
       {inspirations !== undefined &&
         (inspirations.length > 0 ? (
           <section className="px-8 pb-16 pt-2">
-            <MasonryGrid items={inspirations} onItemOpen={openLightbox} />
+            <MasonryGrid items={visible} onItemOpen={openLightbox} />
           </section>
         ) : (
           // The empty state is the onboarding — there is no other onboarding.
@@ -233,7 +265,7 @@ export function Board() {
         <Lightbox
           item={lightboxItem}
           hasPrev={lightboxIndex > 0}
-          hasNext={lightboxIndex < inspirations!.length - 1}
+          hasNext={lightboxIndex < visible.length - 1}
           origin={lightbox.origin}
           onNavigate={navigateLightbox}
           onClose={() => setLightbox(null)}

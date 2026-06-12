@@ -52,6 +52,23 @@ export async function getAll(): Promise<Inspiration[]> {
   return db.inspirations.orderBy("createdAt").reverse().toArray();
 }
 
+/**
+ * In-memory case-insensitive substring filter on note + title — deliberately
+ * no search library. Pure function: the caller passes the live item list.
+ */
+export function searchInspirations(
+  items: Inspiration[],
+  query: string,
+): Inspiration[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return items;
+  return items.filter(
+    (i) =>
+      i.note.toLowerCase().includes(q) ||
+      (i.title?.toLowerCase().includes(q) ?? false),
+  );
+}
+
 export async function updateNote(id: string, note: string): Promise<void> {
   await db.inspirations.update(id, { note });
 }
