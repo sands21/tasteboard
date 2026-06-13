@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, MotionConfig } from "framer-motion";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
   type Inspiration,
@@ -165,6 +165,16 @@ export function Board() {
     }
   }
 
+  // Lock background scroll while a full-page overlay is up.
+  useEffect(() => {
+    if (!sheetOpen && !lightbox) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [sheetOpen, lightbox]);
+
   const closeSheet = useCallback(() => {
     setSheetOpen(false);
     setPendingImage(null);
@@ -283,6 +293,7 @@ export function Board() {
   }, [undoRecord]);
 
   return (
+    <MotionConfig reducedMotion="user">
     <main
       className="min-h-screen"
       onDragEnter={onDragEnter}
@@ -456,5 +467,6 @@ export function Board() {
         </div>
       )}
     </main>
+    </MotionConfig>
   );
 }

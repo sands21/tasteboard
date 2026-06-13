@@ -140,7 +140,7 @@ export function CaptureSheet({
         role="dialog"
         aria-modal="true"
         aria-label="capture inspiration"
-        className="w-full max-w-lg rounded-card bg-surface p-5 shadow-[0_24px_64px_rgba(28,27,24,0.18)]"
+        className="max-h-[calc(100vh-3rem)] w-full max-w-lg overflow-y-auto rounded-card bg-surface p-5 shadow-[0_24px_64px_rgba(28,27,24,0.18)]"
       >
         {previewSrc ? (
           // eslint-disable-next-line @next/next/no-img-element -- blob/proxy URL preview; next/image can't optimize these
