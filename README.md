@@ -46,7 +46,7 @@ Yeah, please. This is a personal project but I'm happy to have company.
 - Found a bug or have an idea? **Open an issue** — even a half-formed one is fine.
 - Want to build something? **Open a PR.** Small, focused changes are the easiest to merge. If it's a bigger feature, maybe open an issue first so we can chat before you sink time into it.
 - A couple of things worth knowing before you dive in:
-  - The guiding principle is *does this help me capture inspiration or understand my taste?* If a feature doesn't, it probably doesn't belong in v1. Defaulting to "no" is a feature, not me being difficult.
+  - The guiding principle is *does this help me capture inspiration or understand my taste?*
   - Keep the chrome quiet. The app is a gallery wall — the saved work is the art, the UI should get out of the way. There's a small, fixed palette and two typefaces; match what's already there rather than introducing new ones.
 
 No CLA, no big process. Be kind in reviews, keep it simple, and we're good.
