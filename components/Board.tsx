@@ -13,7 +13,12 @@ import {
 } from "@/lib/db";
 import { isEditableTarget } from "@/lib/dom";
 import { exportBoard, importBoard } from "@/lib/backup";
-import { clearDemoBoard, hasDemoData, loadDemoBoard } from "@/lib/demo";
+import {
+  DEMO_ID_PREFIX,
+  clearDemoBoard,
+  hasDemoData,
+  loadDemoBoard,
+} from "@/lib/demo";
 import { CaptureSheet } from "@/components/CaptureSheet";
 import { MasonryGrid } from "@/components/MasonryGrid";
 import { Lightbox } from "@/components/Lightbox";
@@ -92,14 +97,9 @@ export function Board() {
   }, []);
 
   // Demo seed: the empty state's "load a sample board". The "demo data"
-  // notice shows while demo records exist, unless dismissed (persisted so it
-  // stays dismissed across reloads; cleared again when demo data goes away).
-  const DEMO_NOTICE_KEY = "tasteboard-demo-notice-dismissed";
+  // notice stays visible while demo records exist so visitors always have a
+  // path back to the blank state.
   const [seeding, setSeeding] = useState(false);
-  const [demoNoticeDismissed, setDemoNoticeDismissed] = useState(true);
-  useEffect(() => {
-    setDemoNoticeDismissed(localStorage.getItem(DEMO_NOTICE_KEY) === "1");
-  }, []);
   const demoPresent = hasDemoData(inspirations ?? []);
 
   async function handleLoadDemo() {
@@ -107,8 +107,6 @@ export function Board() {
     setSeeding(true);
     try {
       const n = await loadDemoBoard();
-      localStorage.removeItem(DEMO_NOTICE_KEY);
-      setDemoNoticeDismissed(false);
       if (n === 0) showNotice("couldn't load the sample board");
     } catch {
       showNotice("couldn't load the sample board");
@@ -119,13 +117,6 @@ export function Board() {
 
   async function handleClearDemo() {
     await clearDemoBoard(inspirations ?? []);
-    localStorage.removeItem(DEMO_NOTICE_KEY);
-    setDemoNoticeDismissed(false);
-  }
-
-  function dismissDemoNotice() {
-    localStorage.setItem(DEMO_NOTICE_KEY, "1");
-    setDemoNoticeDismissed(true);
   }
 
   async function handleExport() {
@@ -276,14 +267,23 @@ export function Board() {
   }, []);
 
   // No confirm dialog — delete immediately, offer undo in a brief toast.
-  const handleDelete = useCallback(async (id: string) => {
-    const record = await deleteInspiration(id);
-    setLightbox(null);
-    if (!record) return;
-    setUndoRecord(record);
-    if (undoTimer.current) clearTimeout(undoTimer.current);
-    undoTimer.current = setTimeout(() => setUndoRecord(null), UNDO_TOAST_MS);
-  }, []);
+  // Demo items are the shared sample board, so a visitor can't delete them
+  // (their own uploads delete normally; "clear demo" removes the whole set).
+  const handleDelete = useCallback(
+    async (id: string) => {
+      if (id.startsWith(DEMO_ID_PREFIX)) {
+        showNotice("that's a demo piece — it stays on the wall");
+        return;
+      }
+      const record = await deleteInspiration(id);
+      setLightbox(null);
+      if (!record) return;
+      setUndoRecord(record);
+      if (undoTimer.current) clearTimeout(undoTimer.current);
+      undoTimer.current = setTimeout(() => setUndoRecord(null), UNDO_TOAST_MS);
+    },
+    [showNotice],
+  );
 
   const handleUndo = useCallback(() => {
     if (!undoRecord) return;
@@ -301,9 +301,9 @@ export function Board() {
       onDragLeave={onDragLeave}
       onDrop={onDrop}
     >
-      <header className="flex items-center gap-6 px-8 py-5">
-        <h1 className="font-serif text-xl italic">tasteboard</h1>
-        <div className="flex flex-1 justify-center">
+      <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-6 px-8 py-5">
+        <h1 className="justify-self-start font-serif text-xl italic">tasteboard</h1>
+        <div className="w-80 max-w-[40vw] justify-self-center">
           {inspirations !== undefined && inspirations.length > 0 && (
             <input
               ref={searchRef}
@@ -321,7 +321,7 @@ export function Board() {
             />
           )}
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 justify-self-end">
           {inspirations !== undefined && inspirations.length > 0 && (
             <button
               type="button"
@@ -366,7 +366,7 @@ export function Board() {
         // out on clear/delete; the empty state is overlaid (not a branch swap)
         // and cross-fades in over the fading cards.
         <div className="relative min-h-[70vh]">
-          {demoPresent && !demoNoticeDismissed && (
+          {demoPresent && (
             <div className="flex items-center justify-center gap-4 pb-4 text-[13px] text-muted">
               <span>showing demo data</span>
               <button
@@ -375,14 +375,6 @@ export function Board() {
                 className="text-rose-ink hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink"
               >
                 clear demo
-              </button>
-              <button
-                type="button"
-                aria-label="dismiss notice"
-                onClick={dismissDemoNotice}
-                className="transition-colors hover:text-ink focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink"
-              >
-                ✕
               </button>
             </div>
           )}
