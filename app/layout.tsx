@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import { StoragePersist } from "@/components/StoragePersist";
+import { Analytics } from "@vercel/analytics/next";
 
 // Geist — all UI: labels, buttons, search, dates, microcopy.
 const geist = Geist({
@@ -35,6 +36,7 @@ export default function RootLayout({
       <body>
         <StoragePersist />
         {children}
+        <Analytics />
       </body>
     </html>
   );
