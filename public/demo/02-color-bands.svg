@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <rect x="0" y="0" width="1200" height="200" fill="#8C7A66"/>
+  <rect x="0" y="200" width="1200" height="200" fill="#B5A48C"/>
+  <rect x="0" y="400" width="1200" height="200" fill="#D6C7AE"/>
+  <rect x="0" y="600" width="1200" height="200" fill="#EFE6D4"/>
+  <text x="40" y="170" font-family="Menlo, Consolas, monospace" font-size="18" fill="#EFE6D4">#8C7A66</text>
+  <text x="40" y="370" font-family="Menlo, Consolas, monospace" font-size="18" fill="#F7F2E8">#B5A48C</text>
+  <text x="40" y="570" font-family="Menlo, Consolas, monospace" font-size="18" fill="#8C7A66">#D6C7AE</text>
+  <text x="40" y="770" font-family="Menlo, Consolas, monospace" font-size="18" fill="#B5A48C">#EFE6D4</text>
+</svg>

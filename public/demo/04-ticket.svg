@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+  <rect width="1200" height="700" fill="#E8E3D8"/>
+  <rect x="100" y="120" width="1000" height="460" rx="14" fill="#FDFCF8" stroke="#C9C2B2" stroke-width="2"/>
+  <text x="150" y="200" font-family="Menlo, Consolas, monospace" font-size="22" fill="#8A847A" letter-spacing="6">TASTE EXPRESS</text>
+  <text x="150" y="340" font-family="Menlo, Consolas, monospace" font-size="110" fill="#22201C">23A</text>
+  <text x="150" y="400" font-family="Menlo, Consolas, monospace" font-size="20" fill="#8A847A">WINDOW — QUIET CAR</text>
+  <text x="150" y="510" font-family="Menlo, Consolas, monospace" font-size="18" fill="#B0A99C">DEP 06:42 / ARR 09:15 / GATE 4</text>
+  <line x1="790" y1="140" x2="790" y2="560" stroke="#C9C2B2" stroke-width="3" stroke-dasharray="2 14" stroke-linecap="round"/>
+  <g fill="#22201C">
+    <rect x="850" y="200" width="6" height="300"/><rect x="864" y="200" width="3" height="300"/><rect x="875" y="200" width="10" height="300"/><rect x="893" y="200" width="4" height="300"/><rect x="905" y="200" width="7" height="300"/><rect x="920" y="200" width="3" height="300"/><rect x="931" y="200" width="9" height="300"/><rect x="948" y="200" width="5" height="300"/><rect x="961" y="200" width="3" height="300"/><rect x="972" y="200" width="8" height="300"/><rect x="988" y="200" width="4" height="300"/><rect x="1000" y="200" width="6" height="300"/><rect x="1014" y="200" width="10" height="300"/><rect x="1032" y="200" width="4" height="300"/>
+  </g>
+</svg>

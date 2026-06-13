@@ -13,6 +13,7 @@ import {
 } from "@/lib/db";
 import { isEditableTarget } from "@/lib/dom";
 import { exportBoard, importBoard } from "@/lib/backup";
+import { clearDemoBoard, hasDemoData, loadDemoBoard } from "@/lib/demo";
 import { CaptureSheet } from "@/components/CaptureSheet";
 import { MasonryGrid } from "@/components/MasonryGrid";
 import { Lightbox } from "@/components/Lightbox";
@@ -89,6 +90,43 @@ export function Board() {
     if (noticeTimer.current) clearTimeout(noticeTimer.current);
     noticeTimer.current = setTimeout(() => setNotice(null), 4000);
   }, []);
+
+  // Demo seed: the empty state's "load a sample board". The "demo data"
+  // notice shows while demo records exist, unless dismissed (persisted so it
+  // stays dismissed across reloads; cleared again when demo data goes away).
+  const DEMO_NOTICE_KEY = "tasteboard-demo-notice-dismissed";
+  const [seeding, setSeeding] = useState(false);
+  const [demoNoticeDismissed, setDemoNoticeDismissed] = useState(true);
+  useEffect(() => {
+    setDemoNoticeDismissed(localStorage.getItem(DEMO_NOTICE_KEY) === "1");
+  }, []);
+  const demoPresent = hasDemoData(inspirations ?? []);
+
+  async function handleLoadDemo() {
+    if (seeding) return;
+    setSeeding(true);
+    try {
+      const n = await loadDemoBoard();
+      localStorage.removeItem(DEMO_NOTICE_KEY);
+      setDemoNoticeDismissed(false);
+      if (n === 0) showNotice("couldn't load the sample board");
+    } catch {
+      showNotice("couldn't load the sample board");
+    } finally {
+      setSeeding(false);
+    }
+  }
+
+  async function handleClearDemo() {
+    await clearDemoBoard(inspirations ?? []);
+    localStorage.removeItem(DEMO_NOTICE_KEY);
+    setDemoNoticeDismissed(false);
+  }
+
+  function dismissDemoNotice() {
+    localStorage.setItem(DEMO_NOTICE_KEY, "1");
+    setDemoNoticeDismissed(true);
+  }
 
   async function handleExport() {
     if (porting) return;
@@ -314,16 +352,45 @@ export function Board() {
 
       {inspirations !== undefined &&
         (inspirations.length > 0 ? (
-          <section className="px-8 pb-16 pt-2">
-            <MasonryGrid items={visible} onItemOpen={openLightbox} />
-          </section>
+          <>
+            {demoPresent && !demoNoticeDismissed && (
+              <div className="flex items-center justify-center gap-4 pb-4 text-[13px] text-muted">
+                <span>showing demo data</span>
+                <button
+                  type="button"
+                  onClick={() => void handleClearDemo()}
+                  className="text-rose-ink hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink"
+                >
+                  clear demo
+                </button>
+                <button
+                  type="button"
+                  aria-label="dismiss notice"
+                  onClick={dismissDemoNotice}
+                  className="transition-colors hover:text-ink focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+            <section className="px-8 pb-16 pt-2">
+              <MasonryGrid items={visible} onItemOpen={openLightbox} />
+            </section>
+          </>
         ) : (
           // The empty state is the onboarding — there is no other onboarding.
-          // ("load a sample board" joins it with the demo seed in step 8.)
-          <section className="flex min-h-[70vh] items-center justify-center px-6 text-center">
+          <section className="flex min-h-[70vh] flex-col items-center justify-center gap-6 px-6 text-center">
             <p className="max-w-xl font-serif text-[28px] italic text-muted">
               paste something you love — ⌘V anywhere
             </p>
+            <button
+              type="button"
+              onClick={() => void handleLoadDemo()}
+              disabled={seeding}
+              className="text-sm text-muted underline-offset-4 transition-colors hover:text-rose-ink hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink disabled:opacity-60"
+            >
+              {seeding ? "loading sample board…" : "just browsing? load a sample board"}
+            </button>
           </section>
         ))}
 

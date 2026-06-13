@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1250" viewBox="0 0 1000 1250">
+  <rect width="1000" height="1250" fill="#EDEDEA"/>
+  <g font-family="'Helvetica Neue', Arial, sans-serif" font-weight="bold" font-size="340">
+    <text x="-30" y="300" fill="#161616">GRID</text>
+    <text x="-30" y="560" fill="#161616" opacity="0.65">GRID</text>
+    <text x="-30" y="820" fill="#D8432B">GRID</text>
+    <text x="-30" y="1080" fill="#161616" opacity="0.3">GRID</text>
+  </g>
+  <text x="40" y="1190" font-family="Menlo, Consolas, monospace" font-size="20" fill="#161616">break it until it works</text>
+</svg>

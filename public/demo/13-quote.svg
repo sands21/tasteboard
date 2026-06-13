@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
+  <rect width="1200" height="675" fill="#F7F1E5"/>
+  <text x="100" y="280" font-family="Georgia, 'Times New Roman', serif" font-size="58" font-style="italic" fill="#2A2722">&#8220;Whitespace is not empty.</text>
+  <text x="100" y="370" font-family="Georgia, 'Times New Roman', serif" font-size="58" font-style="italic" fill="#2A2722">It is full of restraint.&#8221;</text>
+  <line x1="100" y1="450" x2="180" y2="450" stroke="#C73E2E" stroke-width="4"/>
+  <text x="100" y="510" font-family="Menlo, Consolas, monospace" font-size="18" fill="#8A847A">marginalia, vol. ii</text>
+</svg>

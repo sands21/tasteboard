@@ -1,0 +1,79 @@
+[
+  {
+    "file": "/demo/01-type-scale.svg",
+    "note": "the jump from 24 to 96 with almost nothing in between — scale contrast is doing all the talking here",
+    "title": "type scale study"
+  },
+  {
+    "file": "/demo/02-color-bands.svg",
+    "note": "four mud tones that have no business working together and absolutely do. saving for the next time someone asks for 'pops of color'",
+    "title": "warm neutrals"
+  },
+  {
+    "file": "/demo/03-editorial-grid.svg",
+    "note": "three strict columns and the photo breaks the grid exactly once. restraint, then a single violation — that's what makes it feel designed",
+    "title": "editorial spread"
+  },
+  {
+    "file": "/demo/04-ticket.svg",
+    "note": "monospace everything plus a dotted tear line. utilitarian objects are allowed to be beautiful and this one knows it",
+    "title": "ticket stub"
+  },
+  {
+    "file": "/demo/05-dawn-gradient.svg",
+    "note": "this gradient feels like 6am. want exactly this temperature for an empty state someday"
+  },
+  {
+    "file": "/demo/06-swiss-poster.svg",
+    "note": "the type IS the layout — rotate one word and the whole poster is done. confidence as a design system",
+    "title": "swiss poster"
+  },
+  {
+    "file": "/demo/07-pricing-wireframe.svg",
+    "note": "the middle tier is just slightly taller and outlined darker. that's the entire upsell strategy — no badge, no ribbon, no 'most popular'",
+    "title": "pricing tiers"
+  },
+  {
+    "file": "/demo/08-ampersand.svg",
+    "note": "drew the ampersand bigger than the canvas. cropped letterforms stop being letters and start being texture",
+    "title": "ampersand"
+  },
+  {
+    "file": "/demo/09-geometry.svg",
+    "note": "primary shapes, secondary palette. feels like a children's book for adults and I mean that as the highest compliment"
+  },
+  {
+    "file": "/demo/10-card-stack.svg",
+    "note": "zero shadows on the whole page — separation is hairlines only, and the active card just gets a darker line. stealing this",
+    "title": "card stack"
+  },
+  {
+    "file": "/demo/11-vertical-bar.svg",
+    "note": "one bar, one dot, eighty percent emptiness. the margin is the design",
+    "title": "ma"
+  },
+  {
+    "file": "/demo/12-dark-dashboard.svg",
+    "note": "dark UI where the only saturated color is the data line itself. the chrome fully recedes — this is what 'content first' actually looks like",
+    "title": "dashboard"
+  },
+  {
+    "file": "/demo/13-quote.svg",
+    "note": "pull quote set in italic at 4x body size with a tiny red rule. wish I'd stopped over-decorating quotes years ago"
+  },
+  {
+    "file": "/demo/14-dot-grid.svg",
+    "note": "a color ramp displayed as a grid of dots instead of a boring bar. data as ornament",
+    "title": "ramp study"
+  },
+  {
+    "file": "/demo/15-brutalist.svg",
+    "note": "type cranked up until it clips the edges, repeated until it's a pattern. ugly on purpose and somehow completely confident",
+    "title": "brutalist poster"
+  },
+  {
+    "file": "/demo/16-blueprint.svg",
+    "note": "the dimension marks are prettier than the thing being dimensioned. annotations as the aesthetic",
+    "title": "blueprint"
+  }
+]

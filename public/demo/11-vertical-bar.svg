@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
+  <rect width="800" height="1200" fill="#F6F4EF"/>
+  <rect x="150" y="80" width="64" height="1040" fill="#1C1B18"/>
+  <circle cx="560" cy="300" r="44" fill="#C73E2E"/>
+  <text x="540" y="1110" font-family="Georgia, 'Times New Roman', serif" font-size="20" fill="#8A847A" writing-mode="tb" letter-spacing="8">ma — the space between</text>
+</svg>

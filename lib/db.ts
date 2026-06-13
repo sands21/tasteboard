@@ -86,3 +86,7 @@ export async function deleteInspiration(
 export async function restoreInspiration(record: Inspiration): Promise<void> {
   await db.inspirations.put(record);
 }
+
+export async function deleteInspirations(ids: string[]): Promise<void> {
+  await db.inspirations.bulkDelete(ids);
+}

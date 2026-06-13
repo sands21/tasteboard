@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200" viewBox="0 0 900 1200">
+  <rect width="900" height="1200" fill="#F3F1EC"/>
+  <text x="-1140" y="300" transform="rotate(-90)" font-family="'Helvetica Neue', Arial, sans-serif" font-size="320" font-weight="bold" fill="#181818">FORM</text>
+  <circle cx="660" cy="280" r="120" fill="#D8432B"/>
+  <g font-family="'Helvetica Neue', Arial, sans-serif" font-size="20" fill="#181818">
+    <text x="480" y="980">Gestaltung ist Haltung.</text>
+    <text x="480" y="1010">Design is attitude.</text>
+  </g>
+  <line x1="480" y1="940" x2="840" y2="940" stroke="#181818" stroke-width="4"/>
+</svg>

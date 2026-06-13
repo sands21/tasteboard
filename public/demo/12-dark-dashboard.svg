@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+  <rect width="1400" height="900" fill="#16181D"/>
+  <rect x="0" y="0" width="240" height="900" fill="#1B1E25"/>
+  <g fill="#262B35">
+    <rect x="40" y="60" width="160" height="12" rx="6"/><rect x="40" y="120" width="130" height="10" rx="5"/><rect x="40" y="156" width="145" height="10" rx="5"/><rect x="40" y="192" width="110" height="10" rx="5"/><rect x="40" y="228" width="140" height="10" rx="5"/>
+  </g>
+  <rect x="290" y="60" width="520" height="320" rx="10" fill="#1B1E25" stroke="#262B35" stroke-width="2"/>
+  <polyline points="330,330 420,290 500,305 580,240 660,255 740,180 770,195" fill="none" stroke="#5ED3A3" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="850" y="60" width="500" height="150" rx="10" fill="#1B1E25" stroke="#262B35" stroke-width="2"/>
+  <rect x="850" y="230" width="500" height="150" rx="10" fill="#1B1E25" stroke="#262B35" stroke-width="2"/>
+  <text x="880" y="140" font-family="'Helvetica Neue', Arial, sans-serif" font-size="44" fill="#E8EAEE">84.2%</text>
+  <text x="880" y="310" font-family="'Helvetica Neue', Arial, sans-serif" font-size="44" fill="#E8EAEE">1,204</text>
+  <rect x="290" y="420" width="1060" height="420" rx="10" fill="#1B1E25" stroke="#262B35" stroke-width="2"/>
+  <g fill="#262B35">
+    <rect x="330" y="470" width="980" height="12" rx="6"/><rect x="330" y="520" width="940" height="12" rx="6"/><rect x="330" y="570" width="960" height="12" rx="6"/><rect x="330" y="620" width="900" height="12" rx="6"/><rect x="330" y="670" width="970" height="12" rx="6"/><rect x="330" y="720" width="920" height="12" rx="6"/>
+  </g>
+</svg>

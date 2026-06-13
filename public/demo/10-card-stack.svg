@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900">
+  <rect width="1200" height="900" fill="#FAF9F5"/>
+  <rect x="140" y="140" width="640" height="420" rx="14" fill="#FFFFFF" stroke="#E6E1D5" stroke-width="2"/>
+  <rect x="280" y="240" width="640" height="420" rx="14" fill="#FFFFFF" stroke="#E6E1D5" stroke-width="2"/>
+  <rect x="420" y="340" width="640" height="420" rx="14" fill="#FFFFFF" stroke="#23211C" stroke-width="2"/>
+  <g fill="#EEEAE0">
+    <rect x="460" y="400" width="320" height="12"/>
+    <rect x="460" y="436" width="280" height="12"/>
+    <rect x="460" y="472" width="300" height="12"/>
+  </g>
+  <rect x="460" y="660" width="160" height="46" rx="8" fill="#F3D3DA"/>
+  <text x="60" y="840" font-family="Menlo, Consolas, monospace" font-size="16" fill="#B0A99C">elevation: none — separation by hairline only</text>
+</svg>
