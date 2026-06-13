@@ -294,188 +294,191 @@ export function Board() {
 
   return (
     <MotionConfig reducedMotion="user">
-    <main
-      className="min-h-screen"
-      onDragEnter={onDragEnter}
-      onDragOver={onDragOver}
-      onDragLeave={onDragLeave}
-      onDrop={onDrop}
-    >
-      <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-6 px-8 py-5">
-        <h1 className="justify-self-start font-serif text-xl italic">tasteboard</h1>
-        <div className="w-80 max-w-[40vw] justify-self-center">
-          {inspirations !== undefined && inspirations.length > 0 && (
-            <input
-              ref={searchRef}
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="search your taste"
-              onKeyDown={(e) => {
-                if (e.key === "Escape") {
-                  if (query) setQuery("");
-                  else e.currentTarget.blur();
-                }
-              }}
-              className="w-full max-w-xs rounded-control border border-hairline bg-surface px-3 py-1.5 text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-rose-ink"
-            />
-          )}
-        </div>
-        <div className="flex items-center gap-4 justify-self-end">
-          {inspirations !== undefined && inspirations.length > 0 && (
+      <main
+        className="min-h-screen"
+        onDragEnter={onDragEnter}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+      >
+        <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-6 px-8 py-5">
+          <h1 className="justify-self-start font-serif text-xl italic">tasteboard</h1>
+          <div className="w-80 max-w-[40vw] justify-self-center">
+            {inspirations !== undefined && inspirations.length > 0 && (
+              <input
+                ref={searchRef}
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="search your taste"
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    if (query) setQuery("");
+                    else e.currentTarget.blur();
+                  }
+                }}
+                className="w-full max-w-xs rounded-control border border-hairline bg-surface px-3 py-1.5 text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-rose-ink"
+              />
+            )}
+          </div>
+          <div className="hidden items-center gap-4 justify-self-end md:flex">
+            {inspirations !== undefined && inspirations.length > 0 && (
+              <button
+                type="button"
+                onClick={() => void handleExport()}
+                disabled={porting !== null}
+                className="text-[13px] text-muted transition-colors hover:text-ink focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink disabled:opacity-50"
+              >
+                {porting === "export" ? "exporting…" : "export"}
+              </button>
+            )}
             <button
               type="button"
-              onClick={() => void handleExport()}
+              onClick={() => importInputRef.current?.click()}
               disabled={porting !== null}
               className="text-[13px] text-muted transition-colors hover:text-ink focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink disabled:opacity-50"
             >
-              {porting === "export" ? "exporting…" : "export"}
+              {porting === "import" ? "importing…" : "import"}
             </button>
-          )}
-          <button
-            type="button"
-            onClick={() => importInputRef.current?.click()}
-            disabled={porting !== null}
-            className="text-[13px] text-muted transition-colors hover:text-ink focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink disabled:opacity-50"
-          >
-            {porting === "import" ? "importing…" : "import"}
-          </button>
-          <input
-            ref={importInputRef}
-            type="file"
-            accept=".zip,application/zip"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) void handleImportFile(file);
-              e.target.value = "";
-            }}
-          />
-          <button
-            type="button"
-            onClick={() => setSheetOpen(true)}
-            className="rounded-control bg-rose-surface px-3.5 py-1.5 text-sm text-ink transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink"
-          >
-            add
-          </button>
-        </div>
-      </header>
-
-      {inspirations !== undefined && (
-        // The grid stays mounted even at zero items so cards can exit-animate
-        // out on clear/delete; the empty state is overlaid (not a branch swap)
-        // and cross-fades in over the fading cards.
-        <div className="relative min-h-[70vh]">
-          {demoPresent && (
-            <div className="flex items-center justify-center gap-4 pb-4 text-[13px] text-muted">
-              <span>showing demo data</span>
-              <button
-                type="button"
-                onClick={() => void handleClearDemo()}
-                className="text-rose-ink hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink"
-              >
-                clear demo
-              </button>
-            </div>
-          )}
-          <section className="px-8 pb-16 pt-2">
-            <MasonryGrid items={visible} onItemOpen={openLightbox} />
-          </section>
-
-          {inspirations.length === 0 && (
-            // The empty state is the onboarding — there is no other onboarding.
-            <motion.section
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-6 px-6 text-center"
+            <input
+              ref={importInputRef}
+              type="file"
+              accept=".zip,application/zip"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void handleImportFile(file);
+                e.target.value = "";
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setSheetOpen(true)}
+              className="rounded-control bg-rose-surface px-3.5 py-1.5 text-sm text-ink transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink"
             >
-              <p className="max-w-xl font-serif text-[28px] italic text-muted">
-                paste something you love — ⌘V anywhere
-              </p>
-              <button
-                type="button"
-                onClick={() => void handleLoadDemo()}
-                disabled={seeding}
-                className="pointer-events-auto text-sm text-muted underline-offset-4 transition-colors hover:text-rose-ink hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink disabled:opacity-60"
+              add
+            </button>
+          </div>
+        </header>
+
+        {inspirations !== undefined && (
+          // The grid stays mounted even at zero items so cards can exit-animate
+          // out on clear/delete; the empty state is overlaid (not a branch swap)
+          // and cross-fades in over the fading cards.
+          <div className="relative min-h-[70vh]">
+            {demoPresent && (
+              <div className="flex items-center justify-center gap-4 pb-4 text-[13px] text-muted">
+                <span>showing demo data</span>
+                <button
+                  type="button"
+                  onClick={() => void handleClearDemo()}
+                  className="text-rose-ink hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink"
+                >
+                  clear demo
+                </button>
+              </div>
+            )}
+            <section className="px-8 pb-16 pt-2">
+              <MasonryGrid items={visible} onItemOpen={openLightbox} />
+            </section>
+
+            {inspirations.length === 0 && (
+              // The empty state is the onboarding — there is no other onboarding.
+              <motion.section
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-6 px-6 text-center"
               >
-                {seeding
-                  ? "loading sample board…"
-                  : "just browsing? load a sample board"}
-              </button>
-            </motion.section>
-          )}
-        </div>
-      )}
+                <p className="max-w-xl font-serif text-[28px] italic text-muted max-md:hidden">
+                  paste something you love — ⌘V anywhere
+                </p>
+                <p className="max-w-sm text-sm leading-relaxed text-muted md:hidden">
+                  hang on — tasteboard is being tuned for smol screens <br /> meanwhile, try it out on a larger screen, thanks
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void handleLoadDemo()}
+                  disabled={seeding}
+                  className="pointer-events-auto text-sm text-muted underline-offset-4 transition-colors hover:text-rose-ink hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink disabled:opacity-60 max-md:hidden"
+                >
+                  {seeding
+                    ? "loading sample board…"
+                    : "just browsing? load a sample board"}
+                </button>
+              </motion.section>
+            )}
+          </div>
+        )}
 
-      {dragging && (
-        <div className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center bg-rose-surface/20 ring-2 ring-inset ring-rose-ink/30">
-          <p className="rounded-control bg-surface px-4 py-2 text-sm text-ink shadow-[0_8px_32px_rgba(28,27,24,0.12)]">
-            drop to capture
-          </p>
-        </div>
-      )}
+        {dragging && (
+          <div className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center bg-rose-surface/20 ring-2 ring-inset ring-rose-ink/30">
+            <p className="rounded-control bg-surface px-4 py-2 text-sm text-ink shadow-[0_8px_32px_rgba(28,27,24,0.12)]">
+              drop to capture
+            </p>
+          </div>
+        )}
 
-      {sheetOpen && (
-        <CaptureSheet
-          image={pendingImage}
-          initialUrl={pendingUrl}
-          onImageChange={setPendingImage}
-          onClose={closeSheet}
-        />
-      )}
-
-      {/* AnimatePresence lets the lightbox scale back toward its card on close
-          instead of vanishing. Keyed so a close (not an item switch) triggers
-          exit. */}
-      <AnimatePresence>
-        {lightboxItem && lightbox && (
-          <Lightbox
-            key="lightbox"
-            item={lightboxItem}
-            hasPrev={lightboxIndex > 0}
-            hasNext={lightboxIndex < visible.length - 1}
-            origin={lightbox.origin}
-            onNavigate={navigateLightbox}
-            onClose={() => setLightbox(null)}
-            onUpdateNote={handleUpdateNote}
-            onDelete={(id) => void handleDelete(id)}
+        {sheetOpen && (
+          <CaptureSheet
+            image={pendingImage}
+            initialUrl={pendingUrl}
+            onImageChange={setPendingImage}
+            onClose={closeSheet}
           />
         )}
-      </AnimatePresence>
 
-      {(undoRecord || notice) && (
-        <div className="pointer-events-none fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 flex-col items-center gap-2">
-          {undoRecord && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="pointer-events-auto flex items-center gap-3 rounded-control border border-hairline bg-surface px-4 py-2 shadow-[0_8px_32px_rgba(28,27,24,0.12)]"
-            >
-              <span className="text-[13px] text-muted">deleted</span>
-              <button
-                type="button"
-                onClick={handleUndo}
-                className="text-[13px] text-rose-ink hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink"
+        {/* AnimatePresence lets the lightbox scale back toward its card on close
+          instead of vanishing. Keyed so a close (not an item switch) triggers
+          exit. */}
+        <AnimatePresence>
+          {lightboxItem && lightbox && (
+            <Lightbox
+              key="lightbox"
+              item={lightboxItem}
+              hasPrev={lightboxIndex > 0}
+              hasNext={lightboxIndex < visible.length - 1}
+              origin={lightbox.origin}
+              onNavigate={navigateLightbox}
+              onClose={() => setLightbox(null)}
+              onUpdateNote={handleUpdateNote}
+              onDelete={(id) => void handleDelete(id)}
+            />
+          )}
+        </AnimatePresence>
+
+        {(undoRecord || notice) && (
+          <div className="pointer-events-none fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 flex-col items-center gap-2">
+            {undoRecord && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="pointer-events-auto flex items-center gap-3 rounded-control border border-hairline bg-surface px-4 py-2 shadow-[0_8px_32px_rgba(28,27,24,0.12)]"
               >
-                undo
-              </button>
-            </motion.div>
-          )}
-          {notice && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="pointer-events-auto rounded-control border border-hairline bg-surface px-4 py-2 text-[13px] text-muted shadow-[0_8px_32px_rgba(28,27,24,0.12)]"
-            >
-              {notice}
-            </motion.div>
-          )}
-        </div>
-      )}
-    </main>
+                <span className="text-[13px] text-muted">deleted</span>
+                <button
+                  type="button"
+                  onClick={handleUndo}
+                  className="text-[13px] text-rose-ink hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink"
+                >
+                  undo
+                </button>
+              </motion.div>
+            )}
+            {notice && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="pointer-events-auto rounded-control border border-hairline bg-surface px-4 py-2 text-[13px] text-muted shadow-[0_8px_32px_rgba(28,27,24,0.12)]"
+              >
+                {notice}
+              </motion.div>
+            )}
+          </div>
+        )}
+      </main>
     </MotionConfig>
   );
 }
