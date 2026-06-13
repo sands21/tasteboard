@@ -361,49 +361,60 @@ export function Board() {
         </div>
       </header>
 
-      {inspirations !== undefined &&
-        (inspirations.length > 0 ? (
-          <>
-            {demoPresent && !demoNoticeDismissed && (
-              <div className="flex items-center justify-center gap-4 pb-4 text-[13px] text-muted">
-                <span>showing demo data</span>
-                <button
-                  type="button"
-                  onClick={() => void handleClearDemo()}
-                  className="text-rose-ink hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink"
-                >
-                  clear demo
-                </button>
-                <button
-                  type="button"
-                  aria-label="dismiss notice"
-                  onClick={dismissDemoNotice}
-                  className="transition-colors hover:text-ink focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink"
-                >
-                  ✕
-                </button>
-              </div>
-            )}
-            <section className="px-8 pb-16 pt-2">
-              <MasonryGrid items={visible} onItemOpen={openLightbox} />
-            </section>
-          </>
-        ) : (
-          // The empty state is the onboarding — there is no other onboarding.
-          <section className="flex min-h-[70vh] flex-col items-center justify-center gap-6 px-6 text-center">
-            <p className="max-w-xl font-serif text-[28px] italic text-muted">
-              paste something you love — ⌘V anywhere
-            </p>
-            <button
-              type="button"
-              onClick={() => void handleLoadDemo()}
-              disabled={seeding}
-              className="text-sm text-muted underline-offset-4 transition-colors hover:text-rose-ink hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink disabled:opacity-60"
-            >
-              {seeding ? "loading sample board…" : "just browsing? load a sample board"}
-            </button>
+      {inspirations !== undefined && (
+        // The grid stays mounted even at zero items so cards can exit-animate
+        // out on clear/delete; the empty state is overlaid (not a branch swap)
+        // and cross-fades in over the fading cards.
+        <div className="relative min-h-[70vh]">
+          {demoPresent && !demoNoticeDismissed && (
+            <div className="flex items-center justify-center gap-4 pb-4 text-[13px] text-muted">
+              <span>showing demo data</span>
+              <button
+                type="button"
+                onClick={() => void handleClearDemo()}
+                className="text-rose-ink hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink"
+              >
+                clear demo
+              </button>
+              <button
+                type="button"
+                aria-label="dismiss notice"
+                onClick={dismissDemoNotice}
+                className="transition-colors hover:text-ink focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+          <section className="px-8 pb-16 pt-2">
+            <MasonryGrid items={visible} onItemOpen={openLightbox} />
           </section>
-        ))}
+
+          {inspirations.length === 0 && (
+            // The empty state is the onboarding — there is no other onboarding.
+            <motion.section
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-6 px-6 text-center"
+            >
+              <p className="max-w-xl font-serif text-[28px] italic text-muted">
+                paste something you love — ⌘V anywhere
+              </p>
+              <button
+                type="button"
+                onClick={() => void handleLoadDemo()}
+                disabled={seeding}
+                className="pointer-events-auto text-sm text-muted underline-offset-4 transition-colors hover:text-rose-ink hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-ink disabled:opacity-60"
+              >
+                {seeding
+                  ? "loading sample board…"
+                  : "just browsing? load a sample board"}
+              </button>
+            </motion.section>
+          )}
+        </div>
+      )}
 
       {dragging && (
         <div className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center bg-rose-surface/20 ring-2 ring-inset ring-rose-ink/30">
