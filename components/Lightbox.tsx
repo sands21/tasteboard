@@ -173,6 +173,7 @@ export function Lightbox({
         className="fixed inset-0 z-50 bg-ink/40"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         transition={{ duration: 0.2, ease: "easeOut" }}
         onMouseDown={onClose}
       />
@@ -187,6 +188,7 @@ export function Lightbox({
         }}
         initial={{ opacity: 0, scale: 0.94 }}
         animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.94 }}
         transition={{ duration: 0.2, ease: "easeOut" }}
       >
         <div

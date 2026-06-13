@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { motion, MotionConfig } from "framer-motion";
+import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
   type Inspiration,
@@ -433,18 +433,24 @@ export function Board() {
         />
       )}
 
-      {lightboxItem && lightbox && (
-        <Lightbox
-          item={lightboxItem}
-          hasPrev={lightboxIndex > 0}
-          hasNext={lightboxIndex < visible.length - 1}
-          origin={lightbox.origin}
-          onNavigate={navigateLightbox}
-          onClose={() => setLightbox(null)}
-          onUpdateNote={handleUpdateNote}
-          onDelete={(id) => void handleDelete(id)}
-        />
-      )}
+      {/* AnimatePresence lets the lightbox scale back toward its card on close
+          instead of vanishing. Keyed so a close (not an item switch) triggers
+          exit. */}
+      <AnimatePresence>
+        {lightboxItem && lightbox && (
+          <Lightbox
+            key="lightbox"
+            item={lightboxItem}
+            hasPrev={lightboxIndex > 0}
+            hasNext={lightboxIndex < visible.length - 1}
+            origin={lightbox.origin}
+            onNavigate={navigateLightbox}
+            onClose={() => setLightbox(null)}
+            onUpdateNote={handleUpdateNote}
+            onDelete={(id) => void handleDelete(id)}
+          />
+        )}
+      </AnimatePresence>
 
       {(undoRecord || notice) && (
         <div className="pointer-events-none fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 flex-col items-center gap-2">
